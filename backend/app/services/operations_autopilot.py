@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from app.services.operations_runtime import Task
+from app.services.operations_runtime import Task, TaskPriority
 
 
 @dataclass(slots=True)
@@ -31,7 +31,7 @@ class GoalTaskGenerator:
             if dedupe_key in seen_titles:
                 continue
             seen_titles.add(dedupe_key)
-            priority = "P0" if index == 0 else ("P1" if index < 3 else "P2")
+            priority: TaskPriority = "P0" if index == 0 else ("P1" if index < 3 else "P2")
             task_id = self._task_id(goal=goal, index=index, title=title)
             tasks.append(
                 Task(

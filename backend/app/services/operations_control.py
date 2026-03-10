@@ -6,13 +6,13 @@ from datetime import UTC, datetime, timedelta
 
 from app.services.operations_autopilot import GoalTaskGenerator
 from app.services.operations_dispatcher import DispatcherLoop
-from app.services.operations_notifier import DiscordSummaryNotifier
+from app.services.operations_notifier import build_discord_summary_notifier
 from app.services.operations_runtime import InMemoryOperationsStore, QueueRefillPolicy
 
 RUNTIME_STARTED_AT = datetime.now(UTC)
 RUNTIME_STORE = InMemoryOperationsStore()
 GOAL_GENERATOR = GoalTaskGenerator()
-DISCORD_NOTIFIER = DiscordSummaryNotifier()
+DISCORD_NOTIFIER = build_discord_summary_notifier()
 
 DISPATCHER_LOOP = DispatcherLoop(
     max_concurrency=3,

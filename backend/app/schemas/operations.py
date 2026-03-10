@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class OperationsTaskRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     project: str
     title: str
@@ -20,6 +22,8 @@ class OperationsTaskRead(BaseModel):
 
 
 class OperationsWorkerRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     session_key: str
     agent_id: str
     current_task_id: str | None
@@ -28,6 +32,8 @@ class OperationsWorkerRead(BaseModel):
 
 
 class OperationsEventRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     timestamp: datetime
     type: str
     task_id: str | None
@@ -40,11 +46,23 @@ class OperationsUptimeRead(BaseModel):
     now: datetime
     uptime_seconds: int = Field(ge=0)
     uptime_ratio: float = Field(ge=0, le=1)
+    workers_total: int = Field(ge=0)
+    workers_online: int = Field(ge=0)
+    workers_busy: int = Field(ge=0)
+    workers_idle: int = Field(ge=0)
+    workers_offline: int = Field(ge=0)
+    worker_utilization_pct: float = Field(ge=0, le=100)
+    queue_depth: int = Field(ge=0)
+    queue_depth_by_priority: dict[str, int]
 
 
 class OperationsStallsRead(BaseModel):
     threshold_seconds: int = Field(ge=1)
     stalled_count: int = Field(ge=0)
+    stalled_task_ids: list[str]
+    stalled_by_project: dict[str, int]
+    longest_stall_seconds: int = Field(ge=0)
+    average_stall_seconds: float = Field(ge=0)
     tasks: list[OperationsTaskRead]
 
 

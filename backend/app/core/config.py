@@ -76,6 +76,12 @@ class Settings(BaseSettings):
     request_log_slow_ms: int = Field(default=1000, ge=0)
     request_log_include_health: bool = False
 
+    # Mission Control operations runtime
+    operations_api_enabled: bool = True
+    operations_runtime_write_enabled: bool = False
+    operations_notifier_enabled: bool = False
+    operations_notifier_channel: str = ""
+
     @model_validator(mode="after")
     def _defaults(self) -> Self:
         if self.auth_mode == AuthMode.CLERK:
