@@ -2,6 +2,22 @@
 
 Runbooks and operational notes for running Mission Control.
 
+## Mission Control operating model
+
+- [Cross-thread governance operating model](./mission-control-governance.md)
+
+### Daily dispatch review (JST)
+- Review queue depth by priority (P0/P1/P2)
+- Re-score top candidates and confirm dependencies
+- Dispatch by policy order and reserve interrupt capacity
+- Record assignments/escalations in linked GitHub issues
+
+### Weekly backlog grooming (JST)
+- Deduplicate and normalize incoming backlog items
+- Reclassify blocked/stale items and split oversized work
+- Promote ready work into dispatch queue for next week
+- Publish weekly backlog growth/health summary
+
 ## Health checks
 
 Backend exposes:

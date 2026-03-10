@@ -10,6 +10,7 @@ This folder is the documentation home for **OpenClaw Mission Control**.
 - [Deployment](./deployment/README.md)
 - [Release checklist](./release/README.md)
 - [Operations](./operations/README.md)
+- [Mission Control cross-thread governance](./operations/mission-control-governance.md)
 - [Troubleshooting](./troubleshooting/README.md)
 - [Gateway agent provisioning and check-in troubleshooting](./troubleshooting/gateway-agent-provisioning.md)
 - [Gateway WebSocket protocol](./openclaw_gateway_ws.md)
