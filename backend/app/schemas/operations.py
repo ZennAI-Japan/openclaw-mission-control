@@ -66,6 +66,19 @@ class OperationsStallsRead(BaseModel):
     tasks: list[OperationsTaskRead]
 
 
+class OperationsDashboardSummaryRead(BaseModel):
+    generated_at: datetime
+    uptime_seconds: int = Field(ge=0)
+    queue_depth: int = Field(ge=0)
+    queue_depth_by_priority: dict[str, int]
+    workers_busy: int = Field(ge=0)
+    workers_online: int = Field(ge=0)
+    worker_utilization_pct: float = Field(ge=0, le=100)
+    stalled_count: int = Field(ge=0)
+    stalled_by_project: dict[str, int]
+    longest_stall_seconds: int = Field(ge=0)
+
+
 class GenerateTasksRequest(BaseModel):
     goal: str = Field(min_length=3)
     project: str | None = None

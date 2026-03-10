@@ -220,6 +220,18 @@ async def test_operations_uptime_and_stalls_include_aggregates(
             assert stalls_body["longest_stall_seconds"] == 1860
             assert stalls_body["average_stall_seconds"] == 1860.0
 
+            dashboard = await client.get(
+                "/api/v1/operations/dashboard/summary", headers=_auth_headers()
+            )
+            assert dashboard.status_code == 200
+            dashboard_body = dashboard.json()
+            assert dashboard_body["queue_depth"] == 1
+            assert dashboard_body["workers_busy"] == 1
+            assert dashboard_body["workers_online"] == 2
+            assert dashboard_body["worker_utilization_pct"] == 50.0
+            assert dashboard_body["stalled_count"] == 1
+            assert dashboard_body["stalled_by_project"] == {"alpha": 1}
+
             dispatch = await client.post(
                 "/api/v1/operations/dispatch/tick", headers=_auth_headers()
             )
