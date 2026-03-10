@@ -105,7 +105,9 @@ class InMemoryOperationsStore:
     def record_event(self, event: Event) -> None:
         self.events.append(event)
 
-    def assign_task_to_worker(self, task: Task, worker: Worker, *, now: datetime | None = None) -> None:
+    def assign_task_to_worker(
+        self, task: Task, worker: Worker, *, now: datetime | None = None
+    ) -> None:
         current_time = now or datetime.now(UTC)
         task.status = "running"
         task.updated_at = current_time
@@ -168,7 +170,9 @@ class InMemoryOperationsStore:
         )
         return added
 
-    def detect_stalled_tasks(self, *, threshold: timedelta, now: datetime | None = None) -> list[Task]:
+    def detect_stalled_tasks(
+        self, *, threshold: timedelta, now: datetime | None = None
+    ) -> list[Task]:
         current_time = now or datetime.now(UTC)
         stalled: list[Task] = []
         for task in self.tasks.values():

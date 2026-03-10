@@ -8,7 +8,9 @@ from app.services.operations_autopilot import GoalTaskGenerator
 def test_goal_generator_splits_goal_and_assigns_priorities() -> None:
     generator = GoalTaskGenerator(project="growth")
 
-    tasks = generator.generate(goal="Increase retention. improve onboarding; tune notifications", max_tasks=5)
+    tasks = generator.generate(
+        goal="Increase retention. improve onboarding; tune notifications", max_tasks=5
+    )
 
     assert len(tasks) == 3
     assert [task.priority for task in tasks] == ["P0", "P1", "P1"]

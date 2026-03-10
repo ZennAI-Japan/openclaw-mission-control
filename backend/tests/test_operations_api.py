@@ -117,7 +117,9 @@ async def test_operations_api_requires_auth_and_write_guardrails(
             assert uptime.status_code == 200
             assert uptime.json()["queue_depth"] == 1
 
-            dispatch = await client.post("/api/v1/operations/dispatch/tick", headers=_auth_headers())
+            dispatch = await client.post(
+                "/api/v1/operations/dispatch/tick", headers=_auth_headers()
+            )
             assert dispatch.status_code == 403
             assert dispatch.json()["detail"] == "Operations runtime write endpoints are disabled."
 
@@ -218,7 +220,9 @@ async def test_operations_uptime_and_stalls_include_aggregates(
             assert stalls_body["longest_stall_seconds"] == 1860
             assert stalls_body["average_stall_seconds"] == 1860.0
 
-            dispatch = await client.post("/api/v1/operations/dispatch/tick", headers=_auth_headers())
+            dispatch = await client.post(
+                "/api/v1/operations/dispatch/tick", headers=_auth_headers()
+            )
             assert dispatch.status_code == 200
             assert dispatch.json() == {
                 "dispatched_task_ids": ["queued-p0"],

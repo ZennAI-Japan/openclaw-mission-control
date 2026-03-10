@@ -27,7 +27,9 @@ class DispatcherLoop:
         self._refill_policy = refill_policy
         self._refill_factory = refill_factory
 
-    def run_tick(self, store: InMemoryOperationsStore, *, now: datetime | None = None) -> DispatchResult:
+    def run_tick(
+        self, store: InMemoryOperationsStore, *, now: datetime | None = None
+    ) -> DispatchResult:
         current_time = now or datetime.now(UTC)
         refill_added = store.maybe_refill_queue(
             policy=self._refill_policy,

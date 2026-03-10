@@ -82,7 +82,9 @@ def _stall_metrics(*, now: datetime) -> tuple[dict[str, int], int, float]:
 
 @router.get("/workers", response_model=list[OperationsWorkerRead])
 def list_workers(_guard: None = Depends(_require_operations_access)) -> list[OperationsWorkerRead]:
-    return [OperationsWorkerRead.model_validate(worker) for worker in RUNTIME_STORE.workers.values()]
+    return [
+        OperationsWorkerRead.model_validate(worker) for worker in RUNTIME_STORE.workers.values()
+    ]
 
 
 @router.get("/tasks", response_model=list[OperationsTaskRead])
@@ -97,8 +99,7 @@ def list_events(
 ) -> list[OperationsEventRead]:
     safe_limit = max(1, min(500, limit))
     return [
-        OperationsEventRead.model_validate(event)
-        for event in RUNTIME_STORE.events[-safe_limit:]
+        OperationsEventRead.model_validate(event) for event in RUNTIME_STORE.events[-safe_limit:]
     ]
 
 
