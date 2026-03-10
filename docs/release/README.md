@@ -1,5 +1,9 @@
 # Release checklist
 
+## Recent release notes
+
+- [2026-03: Operations runtime API + Mission Control skill](./2026-03-operations-runtime-autopilot.md)
+
 This is a lightweight, operator-friendly checklist for releasing Mission Control.
 
 > Goal: **no data loss** and **near-zero (ideally zero) user-visible downtime**.

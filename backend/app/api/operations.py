@@ -12,6 +12,7 @@ from app.schemas.operations import (
     DispatchTickResponse,
     GenerateTasksRequest,
     GenerateTasksResponse,
+    OperationsDashboardSummaryRead,
     OperationsEventRead,
     OperationsStallsRead,
     OperationsTaskRead,
@@ -137,6 +138,28 @@ def get_stalls(_guard: None = Depends(_require_operations_access)) -> Operations
         longest_stall_seconds=longest_stall_seconds,
         average_stall_seconds=average_stall_seconds,
         tasks=[OperationsTaskRead.model_validate(task) for task in stalled],
+    )
+
+
+@router.get("/dashboard/summary", response_model=OperationsDashboardSummaryRead)
+def get_dashboard_summary(
+    _guard: None = Depends(_require_operations_access),
+) -> OperationsDashboardSummaryRead:
+    now = datetime.now(UTC)
+    worker_counts = _worker_status_counts()
+    stalled = RUNTIME_STORE.detect_stalled_tasks(threshold=STALL_THRESHOLD, now=now)
+    by_project, longest_stall_seconds, _average_stall_seconds = _stall_metrics(now=now)
+    return OperationsDashboardSummaryRead(
+        generated_at=now,
+        uptime_seconds=max(0, int((now - RUNTIME_STARTED_AT).total_seconds())),
+        queue_depth=RUNTIME_STORE.queue_size(),
+        queue_depth_by_priority=RUNTIME_STORE.queue_size_by_priority(),
+        workers_busy=int(worker_counts["busy"]),
+        workers_online=int(worker_counts["online"]),
+        worker_utilization_pct=float(worker_counts["utilization_pct"]),
+        stalled_count=len(stalled),
+        stalled_by_project=by_project,
+        longest_stall_seconds=longest_stall_seconds,
     )
 
 
