@@ -5,14 +5,21 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 from app.services.operations_dispatcher import DispatcherLoop
-from app.services.operations_runtime import InMemoryOperationsStore, Task, Worker
+from app.services.operations_runtime import InMemoryOperationsStore, QueueRefillPolicy, Task, Worker
 
 
-def _task(*, task_id: str, priority: str, status: str = "queued", updated_at: datetime | None = None) -> Task:
+def _task(
+    *,
+    task_id: str,
+    priority: str,
+    project: str = "core",
+    status: str = "queued",
+    updated_at: datetime | None = None,
+) -> Task:
     created = datetime(2026, 3, 9, 0, 0, tzinfo=UTC)
     return Task(
         id=task_id,
-        project="core",
+        project=project,
         title=f"Task {task_id}",
         objective="objective",
         priority=priority,  # type: ignore[arg-type]
@@ -45,7 +52,10 @@ def test_dispatcher_assigns_up_to_available_slots() -> None:
     store.upsert_worker(Worker(session_key="w2", agent_id="a2"))
     store.upsert_worker(Worker(session_key="w3", agent_id="a3", status="offline"))
 
-    loop = DispatcherLoop(max_concurrency=2, low_watermark=10, refill_batch_size=20)
+    loop = DispatcherLoop(
+        max_concurrency=2,
+        refill_policy=QueueRefillPolicy(low_watermark=10, refill_batch_size=20),
+    )
     result = loop.run_tick(store)
 
     assert result.dispatched_task_ids == ["t1", "t2"]
@@ -89,9 +99,26 @@ def test_stall_detection_returns_only_running_over_threshold() -> None:
     assert [task.id for task in stalled] == ["running-stalled"]
 
 
-def test_refill_skeleton_noop_without_factory() -> None:
+def test_refill_applies_guardrails_and_records_metrics() -> None:
     store = InMemoryOperationsStore()
-    added = store.maybe_refill_queue(low_watermark=10, refill_batch_size=20, refill_factory=None)
+    policy = QueueRefillPolicy(low_watermark=10, refill_batch_size=4, max_project_share=0.5)
 
-    assert added == 0
-    assert store.events == []
+    generated = [
+        _task(task_id="a", priority="P0", project="alpha"),
+        _task(task_id="b", priority="P1", project="alpha"),
+        _task(task_id="c", priority="P1", project="alpha"),
+        _task(task_id="a", priority="P2", project="beta"),  # duplicate id
+    ]
+
+    added = store.maybe_refill_queue(policy=policy, refill_factory=lambda _count: generated)
+
+    assert added == 2
+    assert store.queue_size() == 2
+    assert len(store.events) == 1
+    event = store.events[0]
+    assert event.type == "refill"
+    assert event.payload["requested"] == 4
+    assert event.payload["generated"] == 4
+    assert event.payload["added"] == 2
+    assert event.payload["duplicates"] == 1
+    assert event.payload["dropped_by_quota"] == 1

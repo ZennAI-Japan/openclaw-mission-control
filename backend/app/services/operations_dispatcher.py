@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Callable
 
-from app.services.operations_runtime import Event, InMemoryOperationsStore
+from app.services.operations_runtime import Event, InMemoryOperationsStore, QueueRefillPolicy, Task
 
 
 @dataclass(slots=True)
@@ -19,19 +20,18 @@ class DispatcherLoop:
         self,
         *,
         max_concurrency: int,
-        low_watermark: int,
-        refill_batch_size: int,
+        refill_policy: QueueRefillPolicy,
+        refill_factory: Callable[[int], list[Task]] | None = None,
     ) -> None:
         self._max_concurrency = max(0, max_concurrency)
-        self._low_watermark = max(0, low_watermark)
-        self._refill_batch_size = max(0, refill_batch_size)
+        self._refill_policy = refill_policy
+        self._refill_factory = refill_factory
 
     def run_tick(self, store: InMemoryOperationsStore, *, now: datetime | None = None) -> DispatchResult:
         current_time = now or datetime.now(UTC)
         refill_added = store.maybe_refill_queue(
-            low_watermark=self._low_watermark,
-            refill_batch_size=self._refill_batch_size,
-            refill_factory=None,
+            policy=self._refill_policy,
+            refill_factory=self._refill_factory,
             now=current_time,
         )
 
