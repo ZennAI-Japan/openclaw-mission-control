@@ -19,8 +19,11 @@ services:
 
   redis:
     image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -43,6 +46,10 @@ services:
       AUTH_MODE: ${AUTH_MODE}
       LOCAL_AUTH_TOKEN: ${LOCAL_AUTH_TOKEN}
       RQ_REDIS_URL: redis://redis:6379/0
+      FIFO_REDIS_URL: redis://redis:6379/0
+      FIFO_SQLITE_PATH: /data/tasks.db
+    volumes:
+      - fifo_sqlite_data:/data
     depends_on:
       db:
         condition: service_healthy
@@ -78,6 +85,8 @@ services:
     command: ["python", "scripts/rq-docker", "worker"]
     env_file:
       - ./backend/.env
+    volumes:
+      - fifo_sqlite_data:/data
     depends_on:
       redis:
         condition: service_healthy
@@ -93,5 +102,31 @@ services:
       RQ_DISPATCH_MAX_RETRIES: ${RQ_DISPATCH_MAX_RETRIES:-3}
     restart: unless-stopped
 
+  fifo-worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "scripts/rq-docker", "fifo-worker"]
+    env_file:
+      - ./backend/.env
+    volumes:
+      - fifo_sqlite_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      AUTH_MODE: ${AUTH_MODE}
+      LOCAL_AUTH_TOKEN: ${LOCAL_AUTH_TOKEN}
+      FIFO_REDIS_URL: redis://redis:6379/0
+      FIFO_SQLITE_PATH: /data/tasks.db
+      FIFO_STREAM_NAME: ${FIFO_STREAM_NAME:-openclaw_tasks}
+      FIFO_CONSUMER_GROUP: ${FIFO_CONSUMER_GROUP:-openclaw_workers}
+      FIFO_CONSUMER_NAME: ${FIFO_CONSUMER_NAME:-mission-control-worker}
+      FIFO_MAX_RETRIES: ${FIFO_MAX_RETRIES:-3}
+      FIFO_CLAIM_MIN_IDLE_MS: ${FIFO_CLAIM_MIN_IDLE_MS:-60000}
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  redis_data:
+  fifo_sqlite_data:

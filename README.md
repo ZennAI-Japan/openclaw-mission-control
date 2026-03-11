@@ -128,6 +128,8 @@ Environment templates:
 
 Complete guides for deployment, production, troubleshooting, and testing are in [`/docs`](./docs/).
 
+- FIFO queue integration guide: [`docs/fifo-queue.md`](./docs/fifo-queue.md)
+
 ## Project status
 
 Mission Control is under active development.
