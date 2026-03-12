@@ -35,7 +35,9 @@ def list_fifo_tasks(
     _auth: object = ADMIN_AUTH_DEP,
 ) -> FifoListResponse:
     records = list_task_statuses(status=status_filter, limit=limit, offset=offset)
-    return FifoListResponse(items=[FifoTaskRead.model_validate(record.__dict__) for record in records])
+    return FifoListResponse(
+        items=[FifoTaskRead.model_validate(record.__dict__) for record in records]
+    )
 
 
 @router.get("/tasks/dead-letter", response_model=FifoListResponse)
@@ -45,7 +47,9 @@ def list_dead_letter_tasks(
     _auth: object = ADMIN_AUTH_DEP,
 ) -> FifoListResponse:
     records = list_task_statuses(status="dead_letter", limit=limit, offset=offset)
-    return FifoListResponse(items=[FifoTaskRead.model_validate(record.__dict__) for record in records])
+    return FifoListResponse(
+        items=[FifoTaskRead.model_validate(record.__dict__) for record in records]
+    )
 
 
 @router.get("/tasks/{task_id}", response_model=FifoTaskRead)

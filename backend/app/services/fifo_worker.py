@@ -83,7 +83,11 @@ def run_once() -> int:
 
 
 def run_worker() -> None:
-    logger.info("fifo.worker.started stream=%s group=%s", settings.fifo_stream_name, settings.fifo_consumer_group)
+    logger.info(
+        "fifo.worker.started stream=%s group=%s",
+        settings.fifo_stream_name,
+        settings.fifo_consumer_group,
+    )
     while True:
         run_once()
         time.sleep(settings.fifo_worker_sleep_seconds)

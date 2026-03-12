@@ -38,8 +38,7 @@ def _conn() -> sqlite3.Connection:
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS fifo_tasks (
             task_id TEXT PRIMARY KEY,
             group_id TEXT NOT NULL,
@@ -49,13 +48,14 @@ def _conn() -> sqlite3.Connection:
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         )
-        """
-    )
+        """)
     conn.commit()
     return conn
 
 
-def upsert_task(*, task_id: str, group_id: str, payload: dict[str, Any], status: str, retry_count: int) -> None:
+def upsert_task(
+    *, task_id: str, group_id: str, payload: dict[str, Any], status: str, retry_count: int
+) -> None:
     if status not in TASK_STATUSES:
         raise ValueError(f"Unsupported task status: {status}")
     ts = _now_iso()
@@ -95,7 +95,9 @@ def get_task(task_id: str) -> FifoTaskRecord | None:
     )
 
 
-def list_tasks(*, status: str | None = None, limit: int = 100, offset: int = 0) -> list[FifoTaskRecord]:
+def list_tasks(
+    *, status: str | None = None, limit: int = 100, offset: int = 0
+) -> list[FifoTaskRecord]:
     conn = _conn()
     if status is None:
         rows = conn.execute(

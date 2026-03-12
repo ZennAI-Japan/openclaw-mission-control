@@ -42,7 +42,9 @@ def ensure_group(r: Redis | None = None) -> None:
             raise
 
 
-def enqueue_task(*, group_id: str, payload: dict[str, Any], task_id: str | None = None, retry_count: int = 0) -> str:
+def enqueue_task(
+    *, group_id: str, payload: dict[str, Any], task_id: str | None = None, retry_count: int = 0
+) -> str:
     client = redis_client()
     ensure_group(client)
     resolved_task_id = task_id or str(uuid.uuid4())
@@ -93,8 +95,7 @@ def claim_stale_messages(*, min_idle_ms: int | None = None, count: int = 20) -> 
         count=max(1, count),
     )
     return [
-        _entry_to_stream_task(entry_id=str(entry_id), fields=fields)
-        for entry_id, fields in claimed
+        _entry_to_stream_task(entry_id=str(entry_id), fields=fields) for entry_id, fields in claimed
     ]
 
 
@@ -107,7 +108,9 @@ def get_task_status(task_id: str) -> FifoTaskRecord | None:
     return get_task(task_id)
 
 
-def list_task_statuses(*, status: str | None = None, limit: int = 100, offset: int = 0) -> list[FifoTaskRecord]:
+def list_task_statuses(
+    *, status: str | None = None, limit: int = 100, offset: int = 0
+) -> list[FifoTaskRecord]:
     return list_tasks(status=status, limit=limit, offset=offset)
 
 
@@ -116,7 +119,9 @@ def retry_task(task_id: str) -> FifoTaskRecord:
     if task is None:
         raise KeyError(task_id)
     next_retry = task.retry_count + 1
-    enqueue_task(group_id=task.group_id, payload=task.payload, task_id=task.task_id, retry_count=next_retry)
+    enqueue_task(
+        group_id=task.group_id, payload=task.payload, task_id=task.task_id, retry_count=next_retry
+    )
     updated = get_task(task_id)
     if updated is None:
         raise RuntimeError("Failed to reload retried task")
