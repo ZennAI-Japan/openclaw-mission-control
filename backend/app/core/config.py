@@ -82,6 +82,18 @@ class Settings(BaseSettings):
     operations_notifier_enabled: bool = False
     operations_notifier_channel: str = ""
 
+    # FIFO queue (Redis Streams + SQLite task state)
+    fifo_redis_url: str = "redis://localhost:6379/0"
+    fifo_stream_name: str = "openclaw_tasks"
+    fifo_consumer_group: str = "openclaw_workers"
+    fifo_consumer_name: str = "mission-control-worker"
+    fifo_sqlite_path: str = "/tmp/openclaw-fifo/tasks.db"
+    fifo_max_retries: int = 3
+    fifo_claim_min_idle_ms: int = 60000
+    fifo_read_count: int = 10
+    fifo_block_ms: int = 5000
+    fifo_worker_sleep_seconds: float = 1.0
+
     @model_validator(mode="after")
     def _defaults(self) -> Self:
         if self.auth_mode == AuthMode.CLERK:

@@ -12,12 +12,21 @@ from pathlib import Path
 WORKDIR = Path.cwd()
 sys.path.insert(0, str(WORKDIR))
 
+from app.services.fifo_worker import run_worker as run_fifo_worker
 from app.services.queue_worker import run_worker
 
 
 def cmd_worker(args: argparse.Namespace) -> int:
     try:
         run_worker()
+    except KeyboardInterrupt:
+        return 0
+    return 0
+
+
+def cmd_fifo_worker(args: argparse.Namespace) -> int:
+    try:
+        run_fifo_worker()
     except KeyboardInterrupt:
         return 0
     return 0
@@ -32,6 +41,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Continuously process queued background work.",
     )
     worker_parser.set_defaults(func=cmd_worker)
+
+    fifo_parser = subparsers.add_parser(
+        "fifo-worker",
+        help="Continuously process Redis Stream FIFO queue work.",
+    )
+    fifo_parser.set_defaults(func=cmd_fifo_worker)
 
     return parser
 
