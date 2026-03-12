@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import uuid
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from redis import Redis
 from redis.exceptions import ResponseError
@@ -55,7 +55,7 @@ def enqueue_task(
         "retry_count": str(retry_count),
         "status": "queued",
     }
-    client.xadd(settings.fifo_stream_name, fields=fields)
+    client.xadd(settings.fifo_stream_name, fields=cast(dict[Any, Any], fields))
     upsert_task(
         task_id=resolved_task_id,
         group_id=group_id,
@@ -86,14 +86,18 @@ def claim_stale_messages(*, min_idle_ms: int | None = None, count: int = 20) -> 
     if isinstance(summary, dict) and int(summary.get("pending", 0)) == 0:
         return []
 
-    _cursor, claimed, _deleted = client.xautoclaim(
-        settings.fifo_stream_name,
-        settings.fifo_consumer_group,
-        settings.fifo_consumer_name,
-        min_idle_time=min_idle_ms or settings.fifo_claim_min_idle_ms,
-        start_id="0-0",
-        count=max(1, count),
+    claimed_result = cast(
+        tuple[str, list[tuple[str, dict[str, str]]], list[str]],
+        client.xautoclaim(
+            settings.fifo_stream_name,
+            settings.fifo_consumer_group,
+            settings.fifo_consumer_name,
+            min_idle_time=min_idle_ms or settings.fifo_claim_min_idle_ms,
+            start_id="0-0",
+            count=max(1, count),
+        ),
     )
+    _cursor, claimed, _deleted = claimed_result
     return [
         _entry_to_stream_task(entry_id=str(entry_id), fields=fields) for entry_id, fields in claimed
     ]
@@ -130,7 +134,8 @@ def retry_task(task_id: str) -> FifoTaskRecord:
 
 def _to_stream_tasks(records: object) -> list[StreamTask]:
     tasks: list[StreamTask] = []
-    for _stream_name, entries in records or []:
+    typed_records = cast(list[tuple[str, list[tuple[str, dict[str, str]]]]], records or [])
+    for _stream_name, entries in typed_records:
         for entry_id, fields in entries:
             tasks.append(_entry_to_stream_task(entry_id=str(entry_id), fields=fields))
     return tasks
