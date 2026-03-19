@@ -111,6 +111,22 @@ docker compose -f compose.yml --env-file .env up -d --build
 docker compose -f compose.yml --env-file .env down
 ```
 
+### 5. (Recommended) Install local Git hooks
+
+To reduce CI retries and catch failures before push:
+
+```bash
+./scripts/install-hooks.sh
+```
+
+This enables a `pre-push` hook that runs:
+
+```bash
+make lint test
+```
+
+If checks fail, push is blocked until fixed.
+
 ## Authentication
 
 Mission Control supports two authentication modes:
@@ -129,6 +145,7 @@ Environment templates:
 Complete guides for deployment, production, troubleshooting, and testing are in [`/docs`](./docs/).
 
 - FIFO queue integration guide: [`docs/fifo-queue.md`](./docs/fifo-queue.md)
+- FIFO watchdog ops (auto issue): [`docs/ops/fifo-watchdog.md`](./docs/ops/fifo-watchdog.md)
 
 ## Project status
 
